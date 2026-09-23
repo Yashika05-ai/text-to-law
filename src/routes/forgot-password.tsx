@@ -1,0 +1,3 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { AuthPage } from "@/components/nyaya-app";
+export const Route = createFileRoute("/forgot-password")({ head: () => ({ meta: [{ title: "Reset Password — NyayaSaathi AI" }, { name: "description", content: "Preview the NyayaSaathi AI password recovery page." }, { property: "og:title", content: "Reset Password — NyayaSaathi AI" }, { property: "og:description", content: "Preview the password recovery page." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }), component: () => <AuthPage mode="forgot" /> });

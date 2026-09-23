@@ -1,0 +1,3 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { AnalyzePage } from "@/components/nyaya-app";
+export const Route = createFileRoute("/analyze")({ head: () => ({ meta: [{ title: "Analyze a Document — NyayaSaathi AI" }, { name: "description", content: "Select a PDF to preview the document analysis experience." }, { property: "og:title", content: "Analyze a Document — NyayaSaathi AI" }, { property: "og:description", content: "Select a PDF to preview the document analysis experience." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }), component: AnalyzePage });

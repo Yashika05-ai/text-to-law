@@ -1,0 +1,3 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { SettingsPage } from "@/components/nyaya-app";
+export const Route = createFileRoute("/settings")({ head: () => ({ meta: [{ title: "Settings — NyayaSaathi AI" }, { name: "description", content: "Preview language and account settings for NyayaSaathi AI." }, { property: "og:title", content: "Settings — NyayaSaathi AI" }, { property: "og:description", content: "Preview language and account settings." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }), component: SettingsPage });

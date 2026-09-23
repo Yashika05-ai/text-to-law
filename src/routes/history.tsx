@@ -1,0 +1,3 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { HistoryPage } from "@/components/nyaya-app";
+export const Route = createFileRoute("/history")({ head: () => ({ meta: [{ title: "Document History — NyayaSaathi AI" }, { name: "description", content: "Browse example document history in the NyayaSaathi AI preview." }, { property: "og:title", content: "Document History — NyayaSaathi AI" }, { property: "og:description", content: "Browse example document history in the NyayaSaathi AI preview." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }), component: HistoryPage });

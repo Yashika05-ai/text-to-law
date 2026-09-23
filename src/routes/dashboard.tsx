@@ -1,0 +1,3 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { DashboardPage } from "@/components/nyaya-app";
+export const Route = createFileRoute("/dashboard")({ head: () => ({ meta: [{ title: "Overview — NyayaSaathi AI" }, { name: "description", content: "Review your documents and choose a workspace in NyayaSaathi AI." }, { property: "og:title", content: "Overview — NyayaSaathi AI" }, { property: "og:description", content: "Review your documents and choose a workspace." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }), component: DashboardPage });
