@@ -1,0 +1,3 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { AskPage } from "@/components/nyaya-app";
+export const Route = createFileRoute("/ask")({ head: () => ({ meta: [{ title: "Ask Your Document — NyayaSaathi AI" }, { name: "description", content: "Explore the document question-and-answer interface preview." }, { property: "og:title", content: "Ask Your Document — NyayaSaathi AI" }, { property: "og:description", content: "Explore the document question-and-answer interface preview." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }), component: AskPage });

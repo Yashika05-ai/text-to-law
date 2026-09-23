@@ -1,0 +1,3 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { LawyerPreparationPage } from "@/components/nyaya-app";
+export const Route = createFileRoute("/lawyer-preparation")({ head: () => ({ meta: [{ title: "Lawyer Preparation — NyayaSaathi AI" }, { name: "description", content: "Organize questions and information for a qualified legal professional." }, { property: "og:title", content: "Lawyer Preparation — NyayaSaathi AI" }, { property: "og:description", content: "Organize questions and information for a qualified legal professional." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }), component: LawyerPreparationPage });

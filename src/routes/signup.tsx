@@ -1,0 +1,3 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { AuthPage } from "@/components/nyaya-app";
+export const Route = createFileRoute("/signup")({ head: () => ({ meta: [{ title: "Create an Account — NyayaSaathi AI" }, { name: "description", content: "Create your NyayaSaathi AI workspace account." }, { property: "og:title", content: "Create an Account — NyayaSaathi AI" }, { property: "og:description", content: "Create your NyayaSaathi AI workspace account." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }), component: () => <AuthPage mode="signup" /> });

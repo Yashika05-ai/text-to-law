@@ -1,0 +1,3 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { ComparePage } from "@/components/nyaya-app";
+export const Route = createFileRoute("/compare")({ head: () => ({ meta: [{ title: "Compare Documents — NyayaSaathi AI" }, { name: "description", content: "Preview a side-by-side legal document comparison workspace." }, { property: "og:title", content: "Compare Documents — NyayaSaathi AI" }, { property: "og:description", content: "Preview a side-by-side legal document comparison workspace." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }), component: ComparePage });
