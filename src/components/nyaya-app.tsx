@@ -1,4 +1,4 @@
-import { Link, useLocation } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import {
   ArrowDownUp,
   ArrowLeft,
@@ -24,8 +24,10 @@ import {
   Upload,
   X,
 } from "lucide-react";
-import { useRef, useState, type ChangeEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 
 const navigation = [
   { label: "Overview", to: "/dashboard", icon: LayoutDashboard },
@@ -163,8 +165,100 @@ export function HistoryPage() { return <AppShell title="Your document history." 
 export function SettingsPage() { const [language, setLanguage] = useState("English"); return <AppShell title="Settings." eyebrow="Settings"><div className="settings-list"><section><div><h2>Language</h2><p>Choose the language for plain-language explanations.</p></div><label className="setting-control"><Languages size={16}/><select value={language} onChange={(event) => setLanguage(event.target.value)} aria-label="Explanation language"><option>English</option><option>Hindi</option><option>Hinglish</option></select></label></section><section><div><h2>Account</h2><p>Sign-in and personal details will be available after authentication is connected.</p></div><Button asChild variant="outline"><Link to="/login">Sign in <ArrowRight size={15}/></Link></Button></section><section><div><h2>Privacy &amp; assistance</h2><p>Documents and their contents are not stored by this UI preview.</p></div><ShieldCheck size={19}/></section></div></AppShell>; }
 
 export function AuthPage({ mode }: { mode: "login" | "signup" | "forgot" }) {
+  const navigate = useNavigate();
   const [notice, setNotice] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [recovery, setRecovery] = useState(false);
   const title = mode === "login" ? "Welcome back." : mode === "signup" ? "Make room for clarity." : "Reset your password.";
   const description = mode === "login" ? "Sign in to continue to your document workspace." : mode === "signup" ? "Create an account to keep your documents together." : "Enter the email associated with your account.";
-  return <main className="auth-page"><header className="auth-header"><Brand/><Link to="/">Back to home <ArrowLeft size={15}/></Link></header><div className="auth-layout"><section className="auth-aside"><div className="micro-label">Understand · Explore · Prepare</div><h1>Clearer questions start with understanding.</h1><p>NyayaSaathi AI helps you prepare for a conversation with a qualified legal professional.</p><Disclaimer/></section><section className="auth-form-panel"><span className="micro-label accent-label">{mode === "forgot" ? "Account recovery" : "Your workspace"}</span><h2>{title}</h2><p>{description}</p><form onSubmit={(event) => { event.preventDefault(); setNotice("Sign-in is a visual preview only. Account access will be connected in a later phase."); }} className="auth-form">{mode === "signup" && <label>Full name<input required autoComplete="name" placeholder="Your name"/></label>}<label>Email address<input required type="email" autoComplete="email" placeholder="you@example.com"/></label>{mode !== "forgot" && <label>Password<input required type="password" autoComplete={mode === "login" ? "current-password" : "new-password"} placeholder="At least 8 characters" minLength={8}/></label>}{mode === "login" && <Link className="forgot-link" to="/forgot-password">Forgot password?</Link>}<Button type="submit" className="auth-submit">{mode === "login" ? "Sign in" : mode === "signup" ? "Create account" : "Send reset link"}<ArrowRight size={16}/></Button>{notice && <p className="auth-notice" role="status">{notice}</p>}</form><p className="auth-switch">{mode === "login" ? <>New here? <Link to="/signup">Create an account</Link></> : <>Already have an account? <Link to="/login">Sign in</Link></>}</p><Disclaimer compact/></section></div></main>;
+  useEffect(() => {
+    if (mode !== "forgot") return;
+    if (window.location.hash.includes("type=recovery")) setRecovery(true);
+    const { data } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") setRecovery(true);
+    });
+    return () => data.subscription.unsubscribe();
+  }, [mode]);
+
+  const saveProfile = async (userId: string, fullName: string | null) => {
+    const { error } = await supabase.from("profiles").upsert(
+      { id: userId, full_name: fullName },
+      { onConflict: "id" },
+    );
+    if (error) throw error;
+  };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setBusy(true);
+    setNotice("");
+    const form = new FormData(event.currentTarget);
+    const email = String(form.get("email") ?? "").trim();
+    const password = String(form.get("password") ?? "");
+    const fullName = String(form.get("fullName") ?? "").trim();
+    try {
+      if (mode === "forgot" && recovery) {
+        const { error } = await supabase.auth.updateUser({ password });
+        if (error) throw error;
+        setNotice("Your password has been updated. You can now sign in.");
+        setRecovery(false);
+      } else if (mode === "forgot") {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/forgot-password`,
+        });
+        if (error) throw error;
+        setNotice("If an account exists for that email, a password reset link is on its way.");
+      } else if (mode === "signup") {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { full_name: fullName } },
+        });
+        if (error) throw error;
+        if (data.user && data.session) {
+          await saveProfile(data.user.id, fullName || null);
+          await navigate({ to: "/dashboard" });
+        } else {
+          setNotice("Check your email to confirm your account, then sign in to continue.");
+        }
+      } else {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        await saveProfile(data.user.id, data.user.user_metadata?.full_name ?? null);
+        await navigate({ to: "/dashboard" });
+      }
+    } catch {
+      setNotice("We couldn't complete that request. Check your details and try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setBusy(true);
+    setNotice("");
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
+      if (result.error) throw result.error;
+      if (result.redirected) return;
+      const { data, error } = await supabase.auth.getUser();
+      if (error) throw error;
+      if (data.user) {
+        await saveProfile(data.user.id, data.user.user_metadata?.full_name ?? null);
+        await navigate({ to: "/dashboard" });
+      }
+    } catch {
+      setNotice("Google sign-in couldn't be completed. Please try again.");
+      setBusy(false);
+    }
+  };
+
+  const isRecovery = mode === "forgot" && recovery;
+  return <main className="auth-page"><header className="auth-header"><Brand/><Link to="/">Back to home <ArrowLeft size={15}/></Link></header><div className="auth-layout"><section className="auth-aside"><div className="micro-label">Understand · Explore · Prepare</div><h1>Clearer questions start with understanding.</h1><p>NyayaSaathi AI helps you prepare for a conversation with a qualified legal professional.</p><Disclaimer/></section><section className="auth-form-panel"><span className="micro-label accent-label">{mode === "forgot" ? "Account recovery" : "Your workspace"}</span><h2>{isRecovery ? "Choose a new password." : title}</h2><p>{isRecovery ? "Enter a new password for your account." : description}</p><form onSubmit={handleSubmit} className="auth-form">{mode === "signup" && <label>Full name<input name="fullName" required autoComplete="name" placeholder="Your name"/></label>}{!isRecovery && <label>Email address<input name="email" required type="email" autoComplete="email" placeholder="you@example.com"/></label>}{(mode !== "forgot" || isRecovery) && <label>{isRecovery ? "New password" : "Password"}<input name="password" required type="password" autoComplete={mode === "login" ? "current-password" : "new-password"} placeholder="At least 8 characters" minLength={8}/></label>}{mode === "login" && <Link className="forgot-link" to="/forgot-password">Forgot password?</Link>}<Button type="submit" className="auth-submit" disabled={busy}>{busy ? "Please wait…" : isRecovery ? "Update password" : mode === "login" ? "Sign in" : mode === "signup" ? "Create account" : "Send reset link"}<ArrowRight size={16}/></Button>{notice && <p className="auth-notice" role="status">{notice}</p>}</form>{mode !== "forgot" && <><div className="auth-divider"><span>or continue with</span></div><Button type="button" variant="outline" className="auth-google" onClick={handleGoogleSignIn} disabled={busy}><GoogleMark/> Continue with Google</Button></>}<p className="auth-switch">{mode === "login" ? <>New here? <Link to="/signup">Create an account</Link></> : mode !== "forgot" ? <>Already have an account? <Link to="/login">Sign in</Link></> : <Link to="/login">Back to sign in</Link>}</p><Disclaimer compact/></section></div></main>;
+}
+
+function GoogleMark() {
+  return <svg aria-hidden="true" viewBox="0 0 18 18" width="17" height="17"><path fill="#4285F4" d="M17.64 9.2c0-.63-.06-1.23-.16-1.8H9v3.4h4.84a4.14 4.14 0 0 1-1.8 2.72v2.23h2.92c1.71-1.58 2.68-3.9 2.68-6.55Z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.81 5.96-2.2l-2.92-2.27c-.81.54-1.84.87-3.04.87-2.34 0-4.33-1.58-5.04-3.71H.94v2.33A9 9 0 0 0 9 18Z"/><path fill="#FBBC05" d="M3.96 10.69a5.4 5.4 0 0 1 0-3.38V4.98H.94a9 9 0 0 0 0 8.04l3.02-2.33Z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58A8.63 8.63 0 0 0 9 0a9 9 0 0 0-8.06 4.98l3.02 2.33C4.67 5.16 6.66 3.58 9 3.58Z"/></svg>;
 }
