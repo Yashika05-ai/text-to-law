@@ -14,7 +14,219 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          document_id: string | null
+          id: string
+          role: string
+          source_refs: Json
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          document_id?: string | null
+          id?: string
+          role: string
+          source_refs?: Json
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          document_id?: string | null
+          id?: string
+          role?: string
+          source_refs?: Json
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_analysis: {
+        Row: {
+          created_at: string
+          document_id: string
+          id: string
+          result: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          document_id: string
+          id?: string
+          result?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          document_id?: string
+          id?: string
+          result?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_analysis_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_comparisons: {
+        Row: {
+          created_at: string
+          document_a_id: string
+          document_b_id: string
+          id: string
+          result: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          document_a_id: string
+          document_b_id: string
+          id?: string
+          result?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          document_a_id?: string
+          document_b_id?: string
+          id?: string
+          result?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_comparisons_document_a_id_fkey"
+            columns: ["document_a_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_comparisons_document_b_id_fkey"
+            columns: ["document_b_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documents: {
+        Row: {
+          created_at: string
+          file_size: number
+          id: string
+          mime_type: string
+          name: string
+          status: string
+          storage_path: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_size?: number
+          id?: string
+          mime_type?: string
+          name: string
+          status?: string
+          storage_path: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          file_size?: number
+          id?: string
+          mime_type?: string
+          name?: string
+          status?: string
+          storage_path?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      lawyer_briefs: {
+        Row: {
+          content: Json
+          created_at: string
+          document_id: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content?: Json
+          created_at?: string
+          document_id?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          document_id?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lawyer_briefs_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          full_name: string | null
+          id: string
+          preferred_language: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          full_name?: string | null
+          id: string
+          preferred_language?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          preferred_language?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
